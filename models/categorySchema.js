@@ -3,14 +3,15 @@ import mongoose from "mongoose";
 const categorySchema = mongoose.Schema({
     name : {
         type : String,
-        required : true
+        required : true,
+        unique : true
     },
     description : {
        type : String,
        required : true
     }
 },
-{timestamps : true})
+{timestamps : true});
 
-const categories = mongoose.model("category",categorySchema);
+const categories = mongoose.model("categories",categorySchema);
 export default categories;

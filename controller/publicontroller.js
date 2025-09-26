@@ -1,6 +1,8 @@
 import session from "express-session";
 import Users from "../models/userschema.js";
 import bcrypt from "bcrypt";
+import products from "../models/productSchema.js";
+import categories from "../models/categorySchema.js";
 
 
 export async function signuPage(req,res) {
@@ -40,6 +42,8 @@ export async function signuPage(req,res) {
          
 }
 
+// ===================== loginpage user ===========================
+
 export async function loginPage(req,res) {
    try {
       
@@ -78,37 +82,49 @@ export async function loginPage(req,res) {
    }
 }
 
-export async function adminlogin(req,res) {
-  //  console.log(req.session.user);
-   try {
-          const {email,password} = req.body;
-       const existingUser = await  Users.findOne({email:email});
-       if(!existingUser){
-        return res.json("email is not found");
-       }
-       
-         const pass = await bcrypt.compare(password,existingUser.password);
-       if(!pass){
-        return res.json('password is incorrect');
-       }
-       if(existingUser.role !== "admin"){
-        res.json("this page is not for users")
-       }
-      
-       req.session.admin = {
-          role : existingUser.role,
-          email : existingUser.email
-       }
+//  ======================== public category view ========================
 
-       res.json({
-        message : "admin login successfull",
-        success : true
-       })
-       
 
-   } catch (error) {
-    console.error(error);
-    throw error;
-   }
-  
+export async function categoryPublic(req,res) {
+
+    try {
+        const showuser = await categories.find({});
+        console.log(showuser);
+
+        res.json(showuser)
+         
+    } catch (error) {
+        console.error(error);
+    }
+
+}
+
+//  ====================== product public view ===============================
+
+
+export async function productPublic(req,res) {
+    try {
+        const product = await products.find({}).select('name');
+        return res.json(product);    
+    } catch (error) {
+        console.error(error)
+        throw new Error("error found"); 
+    }
+}
+
+// ============= product byid public  ============================
+
+export async function productByIdPublic(req,res) {
+  try {
+
+       const id = req.params.id ;
+       const result = await products.findById(id).populate("category");
+       if(!result){
+          return res.json("product not found");
+       }
+       res.json(result);
+       
+  } catch (error) {
+    console.error(error)
+  }  
 }
