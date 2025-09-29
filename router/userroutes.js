@@ -6,14 +6,14 @@ import { getCart, PostCart ,putCart ,deleteCart , PostOrder ,getUserOrder ,getTh
 
 // router.use(isUser);
 router.get("/cart",getCart);
-router.post("/cart",PostCart);
-router.put("/cart/:id",putCart);
-router.delete("/cart/:id",deleteCart);
+router.post("/cart",isUser,PostCart);
+router.put("/cart/:id",isUser,putCart);
+router.delete("/cart/:id",isUser,deleteCart);
 
 // ========== order ================
 
-router.post("/order",PostOrder);
-router.get("/orders",getUserOrder);
-router.get("/orders/:id",getTheOrder);
+router.post("/order",isUser,PostOrder);
+router.get("/orders",isUser,getUserOrder);
+router.get("/orders/:id",isUser,getTheOrder);
 
 export default router;

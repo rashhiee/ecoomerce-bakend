@@ -3,7 +3,8 @@ import Users from "../models/userschema.js";
 import bcrypt from "bcrypt";
 import products from "../models/productSchema.js";
 import categories from "../models/categorySchema.js";
-import Cart from "../models/cartSchema.js";
+// import Cart from "../models/cartSchema.js";
+
 
 
 export async function signuPage(req,res) {
@@ -89,6 +90,22 @@ export async function loginPage(req,res) {
      throw new Error("error ocuured");
      
    }
+}
+
+// ============= logout user  =========================
+
+export async function logoutUser(req,res) {
+   try {
+     req.session.destroy((err) => {
+      if(err){
+        console.error(err)
+        res.status(500).json("logout failed")
+      }
+      res.status(200).json("logout success");
+     })
+   } catch (error) {
+    console.error(error)
+   }  
 }
 
 //  ======================== public category view ========================

@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import session from "express-session";
 import { connectDBS } from "./db/mongo.js";
 import publicRouter from "./router/mainroutes.js";
-import categoryRouter from "./router/admin.js"
+import adminRouter from "./router/admin.js"
 import userRouter from "./router/userroutes.js"
 const app = express();
 import MongoStore from "connect-mongo";
@@ -25,7 +25,9 @@ app.use(session({
 
 }))
 
-app.use(userRouter,categoryRouter,publicRouter);
+app.use("/admin",adminRouter);
+app.use("/",publicRouter);
+app.use("/",userRouter);
 
 app.listen(port,() => {
     console.log(`server is running on ${port}`);

@@ -1,7 +1,7 @@
 export function isAdmin(req,res,next) {
     
-    if(req.session.admin_role === "admin"){
-        console.log(req.session.admin_role);
+    if(req.session.role === "admin"){
+        console.log(req.session.role);
         
       return  next()
     }else{

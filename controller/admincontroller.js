@@ -8,6 +8,8 @@ export async function adminlogin(req, res) {
     //  console.log(req.session.user);
     try {
         const { email, password } = req.body;
+        console.log(req.body);
+        
         const existingUser = await Users.findOne({ email: email });
         if (!existingUser) {
             return res.json("email is not found");
@@ -26,7 +28,8 @@ export async function adminlogin(req, res) {
         //     email: existingUser.email
         // }
 
-        req.session.admin_role = existingUser.role;
+        req.session.role = existingUser.role;
+        req.session.userId = existingUser._id;
 
         res.json({
             message: "admin login successfull",
@@ -250,7 +253,7 @@ export async function adminUpdateUser(req,res) {
         const {status} = req.body;
         const found = await Users.findByIdAndUpdate(id,{status:status},{new:true});
         if(!found){
-            res.status(404).json("user not found");
+          return  res.status(404).json("user not found");
         }
 
         res.status(200).json({
@@ -284,6 +287,8 @@ export async function adminOrderList(req,res) {
 export async function adminOrderUpdate(req,res) {
     try {
         const id = req.params.id;
+        console.log(id);
+        
         const found = await orders.findByIdAndUpdate(id,req.body,{new:true})
         if(!found){
             res.status(404).json("order not found")

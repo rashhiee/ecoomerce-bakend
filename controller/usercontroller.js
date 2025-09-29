@@ -7,7 +7,7 @@ import products from "../models/productSchema.js";
 
       
         const { productId, quantity } = req.body;
-        const userId = req.session.id
+        const userId = req.session.userId
         console.log(userId);
     
         const product = await products.findById(productId);

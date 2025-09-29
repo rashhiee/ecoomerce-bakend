@@ -5,33 +5,33 @@ import { isAdmin } from "../middleware/auth.js";
 const router = express.Router();
 //  =========== admin access to admin page ========
 
-router.post('/admin/login', adminlogin);
+router.post('/login', adminlogin);
 
 router.use(isAdmin);
 // ================ admin acess to category manage =========
 
-router.get("/admin/category", categoryadminPage);
-router.post("/admin/category",catergoryadminAdd);
-router.put("/admin/category/:id",categoryUpdate);
-router.delete("/admin/category/:id",categoryDelete);
+router.get("/category", categoryadminPage);
+router.post("/category",catergoryadminAdd);
+router.put("/category/:id",categoryUpdate);
+router.delete("/category/:id",categoryDelete);
 
 // =========== admin add a product  ====================
 
-router.get("/admin/product",productAdmin);
-router.post("/admin/product",productAdd);
-router.put("/admin/product/:id", productUpdateAdmin);
-router.delete('/admin/product/:id',productDeleteAdmin);
+router.get("/product",productAdmin);
+router.post("/product",productAdd);
+router.put("/product/:id", productUpdateAdmin);
+router.delete('/product/:id',productDeleteAdmin);
 
 // ========== admin user manage =====================
 
-router.get("/admin/users",adminViewUsers);
-router.put("/admin/users",adminUpdateUser);
+router.get("/users",adminViewUsers);
+router.put("/users/:id",adminUpdateUser);
 
 // =========== admin order ===========================
 
-router.get("/admin/orders",adminOrderList);
-router.put("/admin/orders/:id",adminOrderUpdate);
-router.delete("/admin/orders/:id",adminDeleteOrders);
+router.get("/orders",adminOrderList);
+router.put("/orders/:id",adminOrderUpdate);
+router.delete("/orders/:id",adminDeleteOrders);
 
 
 export default router;
