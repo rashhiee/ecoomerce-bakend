@@ -2,7 +2,7 @@
 import express from "express"
 import { loginPage, signuPage } from "../controller/publicontroller.js";
 import { categoryPublic ,productPublic ,productByIdPublic} from "../controller/publicontroller.js";
-import {isAdmin} from "../middleware/authAdmin.js";
+import {isAdmin} from "../middleware/auth.js";
 const router = express.Router();
 
 //  ======  public register and login =============

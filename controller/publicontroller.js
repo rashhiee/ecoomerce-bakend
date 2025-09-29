@@ -3,6 +3,7 @@ import Users from "../models/userschema.js";
 import bcrypt from "bcrypt";
 import products from "../models/productSchema.js";
 import categories from "../models/categorySchema.js";
+import Cart from "../models/cartSchema.js";
 
 
 export async function signuPage(req,res) {
@@ -47,8 +48,12 @@ export async function signuPage(req,res) {
 export async function loginPage(req,res) {
    try {
       
-        const {email,password} = req.body;
+      const {email,password} = req.body;
+      console.log(req.body);
+      
        const existingUser = await  Users.findOne({email:email});
+       console.log(existingUser);
+       
        if(!existingUser){
         return res.json("email is not found");
        }
@@ -57,22 +62,26 @@ export async function loginPage(req,res) {
        if(!pass){
         return res.json('password is incorrect');
        }
-       if(existingUser.role == "admin"){
+       if(existingUser.role === "admin"){
         // console.log(req.session.user.role);
         
         return res.json("this page is only for users");
       }
        
-        req.session.user ={
-            email : existingUser.email,
-            role : existingUser.role,
-        }
-        // console.log(req.session.user);
+        // req.session.user ={
+        //     email : existingUser.email,
+        //     role : existingUser.role,
+        //     _id : existingUser._id
+        // }
+        req.session.role = existingUser.role,
+        req.session.userId = existingUser._id
+        console.log(req.session.role);
+        
         
        res.status(200).json({
         message : `${existingUser.name} hey your login success`,
         success : true,
-        userId : existingUser.id
+        userId : existingUser._id
        });
 
    } catch (error) {

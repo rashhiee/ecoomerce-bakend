@@ -1,53 +1,58 @@
 import categories from "../models/categorySchema.js";
 import products from "../models/productSchema.js";
 import Users from "../models/userschema.js";
+import orders from "../models/orderSchema.js";
 import bcrypt from "bcrypt"
 
-export async function adminlogin(req,res) {
-  //  console.log(req.session.user);
-   try {
-          const {email,password} = req.body;
-       const existingUser = await  Users.findOne({email:email});
-       if(!existingUser){
-        return res.json("email is not found");
-       }
-       
-         const pass = await bcrypt.compare(password,existingUser.password);
-       if(!pass){
-        return res.json('password is incorrect');
-       }
-       if(existingUser.role !== "admin"){
-        res.json("this page is not for users")
-       }
-      
-       req.session.admin = {
-          role : existingUser.role,
-          email : existingUser.email
-       }
+export async function adminlogin(req, res) {
+    //  console.log(req.session.user);
+    try {
+        const { email, password } = req.body;
+        const existingUser = await Users.findOne({ email: email });
+        if (!existingUser) {
+            return res.json("email is not found");
+        }
 
-       res.json({
-        message : "admin login successfull",
-        success : true
-       })
-       
+        const pass = await bcrypt.compare(password, existingUser.password);
+        if (!pass) {
+            return res.json('password is incorrect');
+        }
+        if (existingUser.role !== "admin") {
+            res.json("this page is not for users")
+        }
 
-   } catch (error) {
-    console.error(error);
-    throw error;
-   }
-  
+        // req.session.admin = {
+        //     role: existingUser.role,
+        //     email: existingUser.email
+        // }
+
+        req.session.admin_role = existingUser.role;
+
+        res.json({
+            message: "admin login successfull",
+            success: true
+        })
+
+
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+
 }
 
 // ============== admin category view =====================
 
-export async function categoryadminPage(req,res) {
+export async function categoryadminPage(req, res) {
 
     try {
+        console.log(req.session.role);
+        
         const showuser = await categories.find({});
         console.log(showuser);
 
         res.json(showuser)
-         
+
     } catch (error) {
         console.error(error);
     }
@@ -56,68 +61,252 @@ export async function categoryadminPage(req,res) {
 
 // ==================  admin category add ======================
 
-export async function catergoryadminAdd(req,res) {
+export async function catergoryadminAdd(req, res) {
     try {
-        const {name,description} = req.body;
-        const catogory = await categories.find({name : name});
-        if(catogory){
-          return res.json("category is already exist")
+        const { name, description } = req.body;
+        const catogory = await categories.findOne({ name: name });
+        if (catogory) {
+            return res.json("category is already exist")
         }
-    const result = await categories.create({
-        name : name,
-        description : description
-    })
-    console.log(result);
+        const result = await categories.create({
+            name: name,
+            description: description
+        })
+        console.log(result);
 
-    res.json({
-        message : "category is added",
-        success : true,
-        categoryId : result._id
-    })
-    
+        res.json({
+            message: "category is added",
+            success: true,
+            categoryId: result._id
+        })
+
     } catch (error) {
         console.log(error);
         throw new Error("error found");
-        
-        
+
+
+    }
+}
+
+// =========  category update admin =============
+
+export async function categoryUpdate(req, res) {
+    try {
+        const id = req.params.id;
+        // const {name,description} = req.body;
+
+        const found = await categories.findByIdAndUpdate(id, req.body, { new: true })
+
+        if (found) {
+            res.status(200).json({
+                message: `${found.name} is updated`,
+                success: true
+            })
+        } else {
+            res.json("not updated count");
+        }
+
+    } catch (error) {
+        console.error("Delete cart error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+}
+
+//  ===================  category delete  =========================
+
+export async function categoryDelete(req, res) {
+    try {
+        const id = req.params.id;
+
+        const found = await categories.findByIdAndDelete(id);
+        if (found) {
+            res.status(200).json({
+                message: `${found.name} is deleted`,
+                success: true
+            })
+        } else {
+            res.json("not deleted");
+        }
+    } catch (error) {
+        console.error("Delete cart error:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 }
 
 // ==========  product view     ===========
 
 
-export async function productAdmin(req,res) {
+export async function productAdmin(req, res) {
     try {
         const product = await products.find().populate("category")
-        return res.json(product);    
+        return res.json(product);
     } catch (error) {
         console.error(error)
-        throw new Error("error found"); 
+        throw new Error("error found");
     }
 }
 
 // ========= pruduct add  ================
 
-export async function productAdd(req,res) {
+export async function productAdd(req, res) {
+    try {
+        const { name, description, price, image, category } = req.body;
+        const found = await products.findOne({ name: name });
+        if (found) {
+            return res.json("product already exist");
+        }
+        const product = await products.create({
+            name: name,
+            description: description,
+            price: price,
+            image: image,
+            category: category
+        });
+        console.log(product);
+
+        res.status(200).json("the product was added");
+
+    } catch (error) {
+        console.error(error);
+        throw new Error("error found");
+    }
+}
+
+
+//  ============ pruduct update admin ================
+
+export async function productUpdateAdmin(req, res) {
+    try {
+
+        // const {name,description,price,image,category} = req.body;
+        // const data = req.body;
+        const id = req.params.id
+        console.log(id);
+
+        const updated = await products.findByIdAndUpdate(id, req.body,
+            { new: true }
+        )
+        //  console.log(updated); 
+
+        if (updated) {
+
+            res.status(200).json({
+                message: `${updated.name} this product is updated`,
+                success: true
+            })
+
+        } else {
+            res.json("not updated");
+
+        }
+
+    } catch (error) {
+        consoke.error(error);
+    }
+}
+// ===============  product delete admin   ==================
+
+export async function productDeleteAdmin(req, res) {
+    try {
+        const id = req.params.id;
+        const deleted = await products.findByIdAndDelete(id);
+        if (!deleted) {
+            res.status(404).json("not found the product")
+        }
+        res.status(200).json({
+            message: `${deleted.name} is deleted`,
+            success: true
+        })
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+
+// ================   admin view users =====================
+
+export async function adminViewUsers(req,res) {
+    try {
+        const user = await Users.find({});
+        console.log(user);
+        if(!user){
+            res.status(404).json("no user found")
+        }
+
+        res.status(200).json(user);
+        
+    } catch (error) {
+        console.error(error)
+    }    
+}
+
+//  ================ admin user managing  ======================
+
+export async function adminUpdateUser(req,res) {
+     try {
+
+        const id = req.params.id;
+        const {status} = req.body;
+        const found = await Users.findByIdAndUpdate(id,{status:status},{new:true});
+        if(!found){
+            res.status(404).json("user not found");
+        }
+
+        res.status(200).json({
+            message : `${found.name} is updated`,
+            success : true
+        })
+
+
+     } catch (error) {
+        console.error(error)
+     }    
+}
+
+// ========= admin order list ==================
+
+export async function adminOrderList(req,res) {
    try {
-      const {name,description,price,image,category} = req.body;
-      const found = await products.findOne({name:name});
-      if(found){
-        return res.json("product already exist");
+      const order = await orders.find({});
+      if(!order){
+        res.status(404).json("not found any orders")
       }
-      const product = await products.create({
-        name : name,
-        description : description,
-        price : price,
-        image : image,
-        category : category
-      });
-      console.log(product);
-      
-      res.status(200).json("the product was added");
+      res.status(200).json(order);
 
    } catch (error) {
-     console.error(error);
-     throw new Error("error found");
+    console.error(error)
    } 
+}
+
+// ========= admin order update ======================
+
+export async function adminOrderUpdate(req,res) {
+    try {
+        const id = req.params.id;
+        const found = await orders.findByIdAndUpdate(id,req.body,{new:true})
+        if(!found){
+            res.status(404).json("order not found")
+        }
+
+        res.status(200).json(`${found} is updated`);
+
+    } catch (error) {
+        console.error(error)
+    }
+}
+
+// =============  admin delete orders ===============
+
+export async function adminDeleteOrders(req,res) {
+     try {
+        const id = req.params.id
+        const found = await orders.findByIdAndDelete(id);
+        if(!found){
+            res.status(404).json("not deleted")
+        }
+        res.status(200).json("deleted successfully");
+     } catch (error) {
+        console.error(error)
+     }    
 }
