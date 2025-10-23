@@ -1,23 +1,23 @@
 import mongoose from "mongoose";
 
 const userSchema = mongoose.Schema({
-    name : {
-        type : String , required : true 
+    name: {
+        type: String, required: true
     },
-    email : {
-        type : String , required : true , unique : true
+    email: {
+        type: String, required: true, unique: true
     },
-    password:{
-        type : String , requires : true 
+    password: {
+        type: String, requires: true
     },
-    role : {
-        type : String , enum : ["user","admin"] , default : "user"
+    role: {
+        type: String, enum: ["user", "admin"], default: "user"
     },
-    status : {
-        type : String , enum : ["active","inactive"], default : "active"
+    status: {
+        type: String, enum: ["active", "inactive"], default: "active"
     }
 },
-{ timestamps : true});
+    { timestamps: true });
 
-const Users = mongoose.model("Users",userSchema);
+const Users = mongoose.model("Users", userSchema);
 export default Users;

@@ -7,28 +7,47 @@ import adminRouter from "./router/admin.js"
 import userRouter from "./router/userroutes.js"
 const app = express();
 import MongoStore from "connect-mongo";
+import cors from "cors";
+import path from 'path'
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const port = process.env.PORT || 3000
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 dotenv.config();
 connectDBS();
 
+app.use(cors({
+    origin : 'http://localhost:5173',
+    credentials : true
+}))
+
+app.use('/uploads',express.static(path.join(__dirname,'/uploads')));
+
 app.use(session({
-    secret : process.env.SECRET_KEY,
-    resave : false ,
-    saveUninitialized : false ,
-    store : MongoStore.create({
-        mongoUrl : process.env.MONGO_URI,
-        collectionName : "sessions",
-    })
+    secret: process.env.SECRET_KEY,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URI,
+        collectionName: "sessions",
+    }),
+    cookie :{
+        secure : false,
+        httpOnly : true,
+        maxAge : 1000 * 60 * 60 
+    }
 
 }))
 
-app.use("/admin",adminRouter);
-app.use("/",publicRouter);
-app.use("/",userRouter);
+app.use("/admin", adminRouter);
+app.use("/", publicRouter);
+app.use("/", userRouter);
 
-app.listen(port,() => {
+app.listen(port, () => {
+
     console.log(`server is running on ${port}`);
+
 })
