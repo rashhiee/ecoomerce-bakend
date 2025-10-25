@@ -20,13 +20,12 @@ export async function PostCart(req, res) {
       });
     }
 
-    // ====== FIX OLD ITEMS WITHOUT SIZE ======
+
     cart.items = cart.items.map(i => ({
-      ...i.toObject(),           // convert Mongoose doc to plain object
-      size: i.size || Number(selectedSize)  // if missing, assign selectedSize
+      ...i.toObject(),
+      size: i.size || Number(selectedSize)
     }));
 
-    // Check if the item already exists (same productId AND size)
     const existingItem = cart.items.find(
       i => i.productId.toString() === productId && i.size === Number(selectedSize)
     );
@@ -39,7 +38,7 @@ export async function PostCart(req, res) {
         quantity: 1,
         price: product.price,
         image: product.image,
-        size: Number(selectedSize)  // ensure size is a number
+        size: Number(selectedSize)
       });
     }
 
@@ -50,7 +49,7 @@ export async function PostCart(req, res) {
     res.json(cart);
 
   } catch (error) {
-    console.log("❌ Error in PostCart:", error);
+    console.log(" Error in PostCart:", error);
     res.status(500).json({ message: "Server error", error });
   }
 }
@@ -60,46 +59,50 @@ export async function PostCart(req, res) {
 
 export async function putCart(req, res) {
   try {
-    const id = req.params.id; // Cart ID
-    const { productId, qty } = req.body; // Receive productId and new qty
 
-    // Validate inputs
-    if (!productId || typeof qty !== "number" || qty < 0) {
-      return res.status(400).json({ message: "Invalid input" });
+    const { items } = req.body;
+    console.log("for update", items);
+
+    const userId = req.session.userId;
+
+    if (!Array.isArray(items)) {
+      return res.status(400).json({ message: "Items must be an array" });
     }
 
-    // Find the cart and populate product details
-    const cart = await Cart.findById(id).populate("items.productId");
+
+    const cart = await Cart.findOne({ userId: userId }).populate("items.productId");
     if (!cart) {
       return res.status(404).json({ message: "Cart not found" });
     }
 
-    // Find the item in the cart
-    const item = cart.items.find(
-      (i) => i.productId._id.toString() === productId
-    );
 
-    if (!item) {
-      return res.status(404).json({ message: "Product not found in cart" });
-    }
+    items.forEach((updatedItem) => {
 
-    // ✅ Update quantity
-    if (qty === 0) {
-      // remove item if qty = 0
-      cart.items = cart.items.filter(
-        (i) => i.productId._id.toString() !== productId
+      const existingItem = cart.items.find(
+        (i) => i.productId._id.toString() === updatedItem.productId._id.toString()
       );
-    } else {
-      item.quantity = qty;
-    }
 
-    // Recalculate total
+      if (existingItem) {
+        if (updatedItem.quantity <= 0) {
+
+          cart.items = cart.items.filter(
+            (i) => i.productId._id.toString() !== updatedItem.productId._id.toString()
+          );
+        } else {
+
+          existingItem.quantity = updatedItem.quantity;
+        }
+      }
+    });
+
+
+
     cart.totalAmount = cart.items.reduce(
-      (sum, i) => sum + i.quantity * i.price,
+      (sum, i) => sum + i.quantity * (i.productId?.price || 0),
       0
     );
 
-    // Save and repopulate
+
     await cart.save();
     await cart.populate("items.productId");
 
@@ -110,6 +113,8 @@ export async function putCart(req, res) {
   }
 }
 
+
+
 //  ======== view cart ==============
 
 export async function getCart(req, res) {
@@ -117,7 +122,7 @@ export async function getCart(req, res) {
     const cart = await Cart.findOne({ userId: req.session.userId }).populate("items.productId");
 
     if (!cart) {
-      return res.status(200).json({ items: [], totalAmount: 0 }); // return empty cart if none exists
+      return res.status(200).json({ items: [], totalAmount: 0 });
     }
 
     console.log(cart);
@@ -133,13 +138,14 @@ export async function getCart(req, res) {
 
 export async function deleteCart(req, res) {
   try {
-    // const id = req.params.id;
+
+
     const productId = req.params.id;
     const userId = req.session.userId;
 
     const product = await products.findOne({ _id: productId });
     if (!product) {
-      return res.json({message:"no product found"})
+      return res.json({ message: "no product found" })
     }
 
     const cart = await Cart.findOneAndUpdate(
@@ -150,7 +156,7 @@ export async function deleteCart(req, res) {
     console.log(cart);
 
     if (!cart) {
-      return res.json({message:"no delelted"})
+      return res.json({ message: "no delelted" })
     }
 
     res.status(200).json({
@@ -185,10 +191,31 @@ export async function PostOrder(req, res) {
     const userId = req.session.userId;
     console.log(userId);
 
-    const status = req.body.paymentMethod;
+    const { address } = req.body;
+
+    if (
+      !address ||
+      !address.firstName ||
+      !address.lastName ||
+      !address.email ||
+      !address.phone ||
+      !address.address ||
+      !address.city ||
+      !address.state ||
+      !address.country ||
+      !address.pincode ||
+      !address.payment
+    ) {
+      return res.status(400).json({
+        message:
+          "Address incomplete. Required: line, city, state, postal_code, country",
+      });
+    }
+
+
     const cartFound = await Cart.findOne({ userId: userId });
     if (!cartFound || cartFound.length === 0) {
-      res.status(404).json("user has no cart")
+      res.status(404).json({message:"user has no cart"})
     }
 
 
@@ -196,11 +223,17 @@ export async function PostOrder(req, res) {
       userId: userId,
       items: cartFound.items,
       totalAmount: cartFound.totalAmount,
-      paymentMethod: status,
-      orderStatus: cartFound.orderStatus
+      paymentMethod: address.payment,
+      orderStatus: cartFound.orderStatus,
+      address:address
     })
 
-    res.status(200).json(order);
+     await Cart.findOneAndUpdate(
+      { userId },
+      { $set: { items: [], totalAmount: 0 } }
+    );
+     
+    res.status(200).json({message:"order successfully",order});
 
   } catch (error) {
     console.error(error);
@@ -212,6 +245,8 @@ export async function PostOrder(req, res) {
 export async function getUserOrder(req, res) {
   try {
     const userId = req.session.userId;
+    console.log("user id", userId);
+    
     const found = await orders.find({ userId: userId });
     if (!found) {
       return res.status(404).json("there is not orders by this user");
@@ -244,4 +279,4 @@ export async function getTheOrder(req, res) {
   }
 }
 
-//  ============  
+//  ============   the end  yes yes yes yes ====================================

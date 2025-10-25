@@ -10,6 +10,9 @@ export function isAdmin(req, res, next) {
 
 }
 
+
+
+
 export function isUser(req, res, next) {
 
     if (req.session.role === "user") {

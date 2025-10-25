@@ -7,7 +7,7 @@ import { getCart, PostCart, putCart, deleteCart, PostOrder, getUserOrder, getThe
 // router.use(isUser);
 router.get("/cart", isUser,getCart);
 router.post("/cart", isUser, PostCart);
-router.patch("/cart/:id", isUser, putCart);
+router.put("/carts", isUser, putCart);
 router.delete("/cart/:id", isUser, deleteCart);
 
 // ========== order ================
