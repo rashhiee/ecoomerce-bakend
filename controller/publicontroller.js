@@ -15,13 +15,13 @@ export async function signuPage(req, res) {
     const existingUser = await Users.findOne({ email: email });
     if (existingUser) {
       return res.json({
-        success : false,
+        success: false,
         message: "email is already existing"
       });
     }
     if (password !== Repassword) {
       return res.json({
-        success : false,
+        success: false,
         message: "Enter same password"
       })
     }
@@ -36,7 +36,7 @@ export async function signuPage(req, res) {
     console.log(newUser);
 
     req.session.role = newUser.role,
-    req.session.userId = newUser._id
+      req.session.userId = newUser._id
     console.log(req.session.role);
 
 
@@ -67,23 +67,23 @@ export async function loginPage(req, res) {
 
     if (!existingUser) {
       return res.json({
-        success : false,
-        message :"email is not found"  
+        success: false,
+        message: "email is not found"
       });
     }
 
     const pass = await bcrypt.compare(password, existingUser.password);
     if (!pass) {
-       return res.json({
-        success : false,
-        message :"password is incorrect"  
+      return res.json({
+        success: false,
+        message: "password is incorrect"
       });
     }
     if (existingUser.role === "admin") {
       // console.log(req.session.user.role);
-       return res.json({
-        success : false,
-        message :"this page only for users"  
+      return res.json({
+        success: false,
+        message: "this page only for users"
       });
     }
 
@@ -92,8 +92,8 @@ export async function loginPage(req, res) {
     //     role : existingUser.role,
     //     _id : existingUser._id
     // }
-     req.session.role = existingUser.role,
-    req.session.userId = existingUser._id
+    req.session.role = existingUser.role,
+      req.session.userId = existingUser._id
     console.log(req.session.role);
 
 
@@ -114,12 +114,15 @@ export async function loginPage(req, res) {
 
 export async function logoutUser(req, res) {
   try {
+    console.log(req.session.userId, "is logout");
     req.session.destroy((err) => {
       if (err) {
         console.error(err)
-        res.status(500).json("logout failed")
+        res.status(500).json({ message: "logout failed" })
       }
-      res.status(200).json("logout success");
+      res.clearCookie('connect.sid');
+      res.status(200).json({ message: "logout success" });
+
     })
   } catch (error) {
     console.error(error)
@@ -196,16 +199,37 @@ export async function searchProduct(req, res) {
 
 // ============ login auth ==================
 
-export  function authentication(req, res) {
-   if (req.session.userId) {
-    res.json({
-      isAuth: true,
-      role: req.session.role,
-      userId: req.session.userId,
-    });
-  } else {
-    res.status(401).json({ isAuth: false });
+
+
+export async function authentication(req, res) {
+
+  try {
+    if (!req.session.userId) {
+      return res.json({ isAuth: false });
+    }
+   
+    const user = await Users.findById(req.session.userId)
+
+    if(!user || user.status === "inactive"){
+       req.session.destroy();
+
+      return res.json({
+        isAuth: false,
+        message: "Your account has been deactivated by admin",
+      });
+    }
+
+      res.json({
+        isAuth: true,
+        role: req.session.role,
+        userId: req.session.userId,
+        status : user.status,
+      });
+    
+  } catch (error) {
+    console.log(error);
   }
+
 }
 
 

@@ -31,6 +31,7 @@ export async function PostCart(req, res) {
     );
 
     if (existingItem) {
+
       existingItem.quantity += 1;
     } else {
       cart.items.push({
@@ -46,7 +47,7 @@ export async function PostCart(req, res) {
 
     await cart.save();
     await cart.populate("items.productId");
-    res.json(cart);
+    res.json({message:"ind:",existingItem,cart});
 
   } catch (error) {
     console.log(" Error in PostCart:", error);

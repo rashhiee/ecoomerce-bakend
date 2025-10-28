@@ -13,15 +13,24 @@ export async function adminlogin(req, res) {
 
         const existingUser = await Users.findOne({ email: email });
         if (!existingUser) {
-            return res.json("email is not found");
+            return res.status(400).json({
+                success: false,
+                message: "email is not found"
+            });
         }
 
         const pass = await bcrypt.compare(password, existingUser.password);
         if (!pass) {
-            return res.json('password is incorrect');
+            return res.status(400).json({
+                success: false,
+                message: "password is not found"
+            });
         }
         if (existingUser.role !== "admin") {
-            res.json("this page is not for users")
+            res.json({
+                success: false,
+                message: "this page is not for users "
+            });
         }
 
         // req.session.admin = {
@@ -189,18 +198,18 @@ export async function productAdmin(req, res) {
 
 
 export async function getProductsByCategory(req, res) {
-  try {
-    const { name } = req.params;
-    const category = await categories.findOne({ name: name.toLowerCase() });
+    try {
+        const { name } = req.params;
+        const category = await categories.findOne({ name: name.toLowerCase() });
 
-    if (!category) return res.status(404).json({ message: "Category not found" });
+        if (!category) return res.status(404).json({ message: "Category not found" });
 
-    const productList = await products.find({ category: category._id }).populate("category");
-    res.status(200).json(productList);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error fetching products by category" });
-  }
+        const productList = await products.find({ category: category._id }).populate("category");
+        res.status(200).json(productList);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error fetching products by category" });
+    }
 }
 
 
@@ -225,7 +234,7 @@ export async function adminProductById(req, res) {
 
 export async function productAdd(req, res) {
     try {
-        const { name, description, price, category , size } = req.body;
+        const { name, description, price, category, size } = req.body;
 
         const imagePath = req.file ? `${req.file.filename}` : null;
         console.log(imagePath);
@@ -243,7 +252,7 @@ export async function productAdd(req, res) {
             description: description,
             price: price,
             category: category,
-            size:size,
+            size: size,
             image: imagePath
         });
         console.log(product);
@@ -321,8 +330,8 @@ export async function productDeleteAdmin(req, res) {
         const deleted = await products.findByIdAndDelete(id);
         if (!deleted) {
             res.json({
-                success: false ,
-                message :  "not found the product"
+                success: false,
+                message: "not found the product"
             })
         }
         res.status(200).json({
@@ -398,12 +407,16 @@ export async function adminOrderUpdate(req, res) {
         const id = req.params.id;
         console.log(id);
 
-        const found = await orders.findByIdAndUpdate(id, req.body, { new: true })
+        const {status} = req.body
+
+        const found = await orders.findByIdAndUpdate(id, {orderStatus :status}, { new: true })
+        console.log(found); 
+        
         if (!found) {
-            res.status(404).json("order not found")
+            res.status(404).json({message:"order not found"})
         }
 
-        res.status(200).json(`${found} is updated`);
+        res.status(200).json({message:`${found} is updated`}); 
 
     } catch (error) {
         console.error(error)
