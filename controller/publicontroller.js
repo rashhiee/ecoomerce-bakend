@@ -5,7 +5,9 @@ import products from "../models/productSchema.js";
 import categories from "../models/categorySchema.js";
 // import Cart from "../models/cartSchema.js";
 
-
+export function homePage(req,res) {
+  res.status(200).json({message:'server is running'})  
+}
 
 export async function signuPage(req, res) {
 
@@ -182,13 +184,19 @@ export async function productByIdPublic(req, res) {
 export async function searchProduct(req, res) {
   try {
     const { word } = req.body;
+
+    if (!word || word.trim() === "") {
+      const allProducts = await products.find({});
+      return res.status(200).json(allProducts);
+    }
+
     const productsFound = await products.find({
       name: { $regex: word, $options: "i" }
     });
 
-    if (productsFound.length === 0) {
-      return res.status(404).json({ message: "No products found" });
-    }
+    // if (productsFound.length === 0) {
+    //   return res.status(404).json({ message: "No products found" });
+    // }
 
     res.status(200).json(productsFound);
   } catch (error) {

@@ -1,7 +1,7 @@
 // import { Router } from "express";
 import express from "express"
 import { loginPage, signuPage } from "../controller/publicontroller.js";
-import {  authentication ,  searchProduct, categoryPublic, productPublic, productByIdPublic, logoutUser } from "../controller/publicontroller.js";
+import { homePage, authentication ,  searchProduct, categoryPublic, productPublic, productByIdPublic, logoutUser } from "../controller/publicontroller.js";
 // import {isAdmin} from "../middleware/auth.js";
 import { validationLogin, registerValidator } from "../middleware/validator.js";
 import { getProductsByCategory } from "../controller/admincontroller.js";
@@ -9,6 +9,7 @@ const router = express.Router();
 
 //  ======  public register and login =============
 
+router.get('/',homePage)
 router.post('/signup', registerValidator, signuPage);
 router.post("/login", validationLogin, loginPage);
 router.post("/logout", logoutUser);
